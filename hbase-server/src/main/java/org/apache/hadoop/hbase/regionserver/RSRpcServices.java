@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.ByteBufferExtendedCell;
 import org.apache.hadoop.hbase.CacheEvictionStats;
@@ -2382,7 +2383,7 @@ public class RSRpcServices implements HBaseRPCErrorHandler,
             filePaths.add(familyPath.getPath());
           }
           // Check if the batch of files exceeds the current quota
-          enforcement.checkBulkLoad(regionServer.getFileSystem(), filePaths);
+          enforcement.checkBulkLoad(getFileSystem(filePaths), filePaths);
         }
       }
 
@@ -3686,6 +3687,15 @@ public class RSRpcServices implements HBaseRPCErrorHandler,
     callable.init(request.getProcData().toByteArray(), regionServer);
     LOG.debug("Executing remote procedure {}, pid={}", callable.getClass(), request.getProcId());
     regionServer.executeProcedure(request.getProcId(), callable);
+  }
+
+  private FileSystem getFileSystem(List<String> filePaths) throws IOException {
+    if (filePaths.isEmpty()) {
+      // local hdfs
+      return regionServer.getFileSystem();
+    }
+    // source hdfs
+    return new Path(filePaths.get(0)).getFileSystem(regionServer.getConfiguration());
   }
 
   @Override

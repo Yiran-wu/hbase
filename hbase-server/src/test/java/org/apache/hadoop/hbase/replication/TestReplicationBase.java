@@ -204,6 +204,23 @@ public class TestReplicationBase {
     conf2.setBoolean("hbase.tests.use.shortcircuit.reads", false);
   }
 
+  static void configureClusters(HBaseTestingUtility util1,
+                                HBaseTestingUtility util2, HBaseTestingUtility util3) {
+    setupConfig(util1, "/1");
+    setupConfig(util2, "/2");
+    setupConfig(util3, "/3");
+
+    Configuration conf2 = util2.getConfiguration();
+    conf2.set(HConstants.ZOOKEEPER_ZNODE_PARENT, "/2");
+    conf2.setInt(HConstants.HBASE_CLIENT_RETRIES_NUMBER, 6);
+    conf2.setBoolean("hbase.tests.use.shortcircuit.reads", false);
+
+    Configuration conf3 = util3.getConfiguration();
+    conf3.set(HConstants.ZOOKEEPER_ZNODE_PARENT, "/3");
+    conf3.setInt(HConstants.HBASE_CLIENT_RETRIES_NUMBER, 6);
+    conf3.setBoolean("hbase.tests.use.shortcircuit.reads", false);
+  }
+
   protected static void restartHBaseCluster(HBaseTestingUtility util, int numSlaves)
       throws Exception {
     util.shutdownMiniHBaseCluster();
